@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    stages {
+        stage("Op-5274368T-S1") {
+            steps {
+                echo "S1-5274368T: Setup Release Environment Completed"
+            }
+        }
+        stage("Op-5274368T-S2") {
+            steps {
+                echo "To create container"
+                echo "ST2-5274368T: Server1 is successfully created"
+            }
+        }
+        stage("Op-5274368T-S3") {
+            steps {
+                echo "ST3-5274368T: Server1 is healthy – Health check done"
+            }
+        }
+
+        stage("Op-5274368T-S4") {
+            steps {
+                echo "ST4-5274368T: Server1 is ready for deployment"
+            }
+        }
+
+        stage("Op-5274368T-S5") {
+            steps {
+                echo "ST5-5274368T: Deployment is successful"
+            }
+        }
+        stage("Op-5274368T-S6") {
+            steps {
+                echo "ST6-5274368T: Post-deployment checks are successful"
+            }
+        }   
+        stage("Op-5274368T-S7") {
+            steps {
+                echo "ST7-5274368T: Cleanup completed"
+            }
+        }
+    }
+}
