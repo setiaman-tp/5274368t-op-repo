@@ -9,7 +9,11 @@ pipeline {
         stage("Op-5274368T-S2") {
             steps {
                 echo "To create container"
-                echo "ST2-5274368T: Server1 is successfully created"
+                script {
+                    sh 'docker image rm qa-bkup-image'                    
+                    sh 'docker commit 5274368t-qa-svr qa-bkup-image'
+                }
+                echo “Op-S1-5274368T: QA web server is backup and updated”
             }
         }
         stage("Op-5274368T-S3") {
