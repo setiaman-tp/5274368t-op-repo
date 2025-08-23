@@ -1,10 +1,28 @@
 #!/bin/bash
+
+# Update package list
 apt-get update
+
+# Ensure required packages and services
 puppet resource package git ensure=present
 puppet resource package apache2 ensure=present
 puppet resource service apache2 ensure=running
-puppet resource file /operate/5274368t ensure=absent force=true
-puppet resource file /operate/5274368t ensure=directory
-cd /operate/5274368t
-git clone https://github.com/setiaman-tp/5274368t-op-repo.git
-cp -p /operate/5274368t/5274368t-op-repo/index-op-5274368t.html /var/www/html/index.html
+
+# Ensure parent directory exists
+mkdir -p /operate
+
+# Clean and recreate target directory
+rm -rf /operate/5274368t
+mkdir -p /operate/5274368t
+
+# Clone repo only if not already present
+if [ ! -d "/operate/5274368t/5274368t-op-repo/.git" ]; then
+    git clone https://github.com/setiaman-tp/5274368t-op-repo.git /operate/5274368t/5274368t-op-repo
+fi
+
+# Copy index file if it exists
+if [ -f "/operate/5274368t/5274368t-op-repo/index-op-5274368t.html" ]; then
+    cp -p /operate/5274368t/5274368t-op-repo/index-op-5274368t.html /var/www/html/index.html
+else
+    echo "⚠️ index-op-5274368t.html not found in repo"
+fi
