@@ -20,7 +20,7 @@ pipeline {
                     #!/bin/bash
 					
                     puppet resource file /operate/5274368t ensure=absent force=true;
-					puppet resource file /operate ensure=directory;
+					
                     puppet resource file /operate/5274368t ensure=directory;
 	                cd /operate/5274368t;
                     git clone https://github.com/setiaman-tp/5274368t-op-repo.git;
