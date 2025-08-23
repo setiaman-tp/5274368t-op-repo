@@ -18,9 +18,14 @@ pipeline {
 
                 sh '''
                     #!/bin/bash
-                    targets=5274368t-qa-svr
-                    locate_script="/operate/5274368t/5274368t-op-repo/5274368t-script"
-                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
+                    puppet resource file /operate/5274368t ensure=absent force=true;
+                    puppet resource file /operate/5274368t ensure=directory;
+	                cd /operate/5274368t;
+                    git clone https://github.com/setiaman-tp/5274368t-op-repo.git;
+                    
+                    targets=5274368t-qa-svr;
+                    locate_script="/operate/5274368t/5274368t-op-repo/5274368t-script";
+                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root;
                 '''
                 echo "Web Server container updated"
             }
