@@ -15,7 +15,7 @@ pipeline {
                     sh 'docker commit 5274368t-qa-svr qa-bkup-image'
                 }
 
-                echo "Op-S1-5274368T: QA web server is backup and updated"
+                echo "Op-5274368T-S1: QA web server is backup and updated"
 
                 // Puppet and Bolt deployment script
                 sh '''
@@ -32,13 +32,15 @@ pipeline {
                     bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
                 '''
 
-                echo "Web Server container updated"
+                echo "Op-S1-5274368t-S1: Web Server container updated"
             }
         }
 
         stage("Op-5274368T-S2: QA Server Health Check") {
             steps {
+                echo "Op-S1-5274368t-S2: Checking on whether QA server is running after update"
                 script {
+
                     // Run curl and save first response line to file
                     sh "curl -Is http://localhost:33200 | head -n 1 > /tmp/qa-result-file"
 
@@ -47,7 +49,7 @@ pipeline {
                     if (result == 'HTTP/1.1 200 OK') {
                         echo "QA server is healthy: ${result}"
                     } else {
-                        echo "QA server health check failed: ${result}"
+                        echo "Op-S1-5274368t-S2: QA server health check failed: ${result}"
                         error("Aborting: QA server is not healthy")
                     }
                 }
