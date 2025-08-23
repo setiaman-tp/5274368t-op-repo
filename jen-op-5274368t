@@ -113,9 +113,24 @@ pipeline {
 
         stage("Op-5274368T-S5") {
             steps {
-                echo "ST5-5274368T: Deployment is successful"
+                echo "Op-5274368t-S5: Checking on whether PROD server is running after update"
+                script {
+
+                    // Run curl and save first response line to file
+                    sh "curl -Is http://localhost:33500 | head -n 1 > /tmp/prod-result-file"
+
+                    // Read and validate response
+                    def result = readFile('/tmp/prod-result-file').trim()
+                    if (result == 'HTTP/1.1 200 OK') {
+                        echo "Op-5274368t-S5: PROD server is healthy: ${result}"
+                    } else {
+                        echo "Op-5274368t-S5: PROD server health check failed: ${result}"
+                        error("Op-5274368t-S5: Aborting, PROD server is not healthy")
+                    }
+                }
             }
         }
+
 
         stage("Op-5274368T-S6") {
             steps {
