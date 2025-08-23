@@ -6,24 +6,26 @@ pipeline {
                 echo "S1-5274368T: Setup Release Environment Completed"
             }
         }
+
         stage("Op-5274368T-S2") {
             steps {
                 echo "To create container"
                 script {
-                    sh 'docker image rm qa-bkup-image'                    
+                    sh 'docker image rm qa-bkup-image || true'                    
                     sh 'docker commit 5274368t-qa-svr qa-bkup-image'
                 }
-                echo “Op-S1-5274368T: QA web server is backup and updated”
+                echo "Op-S1-5274368T: QA web server is backup and updated"
+
+                sh '''
+                    #!/bin/bash
+                    targets=5274368t-qa-svr
+                    locate_script="/operate/5274368t/5274368t-script"
+                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
+                '''
+                echo "Web Server container updated"
             }
-          steps {
-                 sh '''#!/bin/bash
-                 targets=5274368t-qa-svr;
-                 locate_script='/operate/5274368t/5274368t-script';
-                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
-                 '''
-                 echo "Web Server container updated"
-          }
         }
+
         stage("Op-5274368T-S3") {
             steps {
                 echo "ST3-5274368T: Server1 is healthy – Health check done"
@@ -41,11 +43,13 @@ pipeline {
                 echo "ST5-5274368T: Deployment is successful"
             }
         }
+
         stage("Op-5274368T-S6") {
             steps {
                 echo "ST6-5274368T: Post-deployment checks are successful"
             }
-        }   
+        }
+
         stage("Op-5274368T-S7") {
             steps {
                 echo "ST7-5274368T: Cleanup completed"
