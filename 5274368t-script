@@ -1,0 +1,10 @@
+#!/bin/bash
+apt-get update
+puppet resource package git ensure=present
+puppet resource package apache2 ensure=present
+puppet resource service apache2 ensure=running
+puppet resource file /operate/5274368t ensure=absent force=true
+puppet resource file /operate/5274368t ensure=directory
+cd /operate/5274368t
+git clone https://github.com/setiaman-tp/5274368t-op-repo.git
+cp -p /operate/5274368t/5274368t-op-repo/index-op-5274368t.html /var/www/html
