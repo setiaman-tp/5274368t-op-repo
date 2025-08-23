@@ -3,7 +3,7 @@ pipeline {
 
     stages {
 
-        stage("Op-5274368T-S1: Backup and Update QA Container") {
+        stage("Op-5274368T-S1") {
             steps {
                 echo "To create container"
 
@@ -32,11 +32,11 @@ pipeline {
                     bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
                 '''
 
-                echo "Op-S1-5274368t-S1: Web Server container updated"
+                echo "Op-S1-5274368t-S1: QA Web Server container updated"
             }
         }
 
-        stage("Op-5274368T-S2: QA Server Health Check") {
+        stage("Op-5274368T-S2") {
             steps {
                 echo "Op-5274368t-S2: Checking on whether QA server is running after update"
                 script {
@@ -56,7 +56,7 @@ pipeline {
             }
         }
 
-        stage("Op-5274368T-S3: Deployment Decision") {
+        stage("Op-5274368T-S3") {
             steps {
                 script {
                     def userChoice = input(
@@ -78,26 +78,52 @@ pipeline {
                 }
             }
         }
-
-        stage("Op-5274368T-S4: Prod Server Ready") {
+        stage("Op-5274368T-S4") {
             steps {
-                echo "ST4-5274368T: Server1 is ready for deployment"
+                echo "Op-5274368T-S4: Backu Production container"
+
+                script {
+                    // Remove old backup image if exists
+                    sh 'docker image rm prod-bkup-image || true'
+
+                    // Commit current QA container as backup
+                    sh 'docker commit 5274368t-prod-svr prod-bkup-image'
+                }
+
+                echo "Op-5274368T-S4: PROD web server is backup and updated"
+
+                // Puppet and Bolt deployment script
+                sh '''
+                    #!/bin/bash
+
+                    puppet resource file /operate/5274368t ensure=absent force=true
+                    puppet resource file /operate/5274368t ensure=directory
+
+                    cd /operate/5274368t
+                    git clone https://github.com/setiaman-tp/5274368t-op-repo.git
+
+                    targets=5274368t-prod-svr
+                    locate_script="/operate/5274368t/5274368t-op-repo/5274368t-script"
+                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
+                '''
+
+                echo "Op-S1-5274368t-S4: Production Web Server container updated"
             }
         }
 
-        stage("Op-5274368T-S5: Deployment Success") {
+        stage("Op-5274368T-S5") {
             steps {
                 echo "ST5-5274368T: Deployment is successful"
             }
         }
 
-        stage("Op-5274368T-S6: Post-Deployment Checks") {
+        stage("Op-5274368T-S6") {
             steps {
                 echo "ST6-5274368T: Post-deployment checks are successful"
             }
         }
 
-        stage("Op-5274368T-S7: Cleanup") {
+        stage("Op-5274368T-S7") {
             steps {
                 echo "ST7-5274368T-S7: Prod web server is monitored and ready to serve."
             }
