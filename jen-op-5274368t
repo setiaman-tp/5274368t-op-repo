@@ -1,63 +1,101 @@
 pipeline {
     agent any
-    stages {
-        stage("Op-5274368T-S1") {
-            steps {
-                echo "S1-5274368T: Setup Release Environment Completed"
-            }
-        }
 
-        stage("Op-5274368T-S2") {
+    stages {
+
+        stage("Op-5274368T-S1: Backup and Update QA Container") {
             steps {
                 echo "To create container"
+
                 script {
-                    sh 'docker image rm qa-bkup-image || true'                    
+                    // Remove old backup image if exists
+                    sh 'docker image rm qa-bkup-image || true'
+
+                    // Commit current QA container as backup
                     sh 'docker commit 5274368t-qa-svr qa-bkup-image'
                 }
+
                 echo "Op-S1-5274368T: QA web server is backup and updated"
 
+                // Puppet and Bolt deployment script
                 sh '''
                     #!/bin/bash
-					
-                    puppet resource file /operate/5274368t ensure=absent force=true;
-					
-                    puppet resource file /operate/5274368t ensure=directory;
-	                cd /operate/5274368t;
-                    git clone https://github.com/setiaman-tp/5274368t-op-repo.git;
-                    
-                    targets=5274368t-qa-svr;
-                    locate_script="/operate/5274368t/5274368t-op-repo/5274368t-script";
-                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root;
+
+                    puppet resource file /operate/5274368t ensure=absent force=true
+                    puppet resource file /operate/5274368t ensure=directory
+
+                    cd /operate/5274368t
+                    git clone https://github.com/setiaman-tp/5274368t-op-repo.git
+
+                    targets=5274368t-qa-svr
+                    locate_script="/operate/5274368t/5274368t-op-repo/5274368t-script"
+                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
                 '''
+
                 echo "Web Server container updated"
             }
         }
 
-        stage("Op-5274368T-S3") {
+        stage("Op-5274368T-S2: QA Server Health Check") {
             steps {
-                echo "ST3-5274368T: Server1 is healthy – Health check done"
+                script {
+                    // Run curl and save first response line to file
+                    sh "curl -Is http://localhost:33200 | head -n 1 > /tmp/qa-result-file"
+
+                    // Read and validate response
+                    def result = readFile('/tmp/qa-result-file').trim()
+                    if (result == 'HTTP/1.1 200 OK') {
+                        echo "QA server is healthy: ${result}"
+                    } else {
+                        echo "QA server health check failed: ${result}"
+                        error("Aborting: QA server is not healthy")
+                    }
+                }
             }
         }
 
-        stage("Op-5274368T-S4") {
+        stage("Op-5274368T-S3: Deployment Decision") {
+            steps {
+                script {
+                    def userChoice = input(
+                        id: 'ProdApproval',
+                        message: 'Choose deployment action:',
+                        parameters: [
+                            choice(name: 'Decision', choices: ['Proceed to Prod', 'Rollback QA'], description: 'Select your action')
+                        ]
+                    )
+
+                    if (userChoice == 'Proceed to Prod') {
+                        echo "Op-5274368T-S3: Proceed to roll out to Prod server"
+                    } else {
+                        echo "Op-5274368T-S3: QA server fails after update and is rolled back"
+                        sh "docker rm -f 5274368t-qa-svr || true"
+                        sh "docker run -d --name 5274368t-qa-svr qa-bkup-image"
+                        error("Aborting: QA server rolled back by deployer decision")
+                    }
+                }
+            }
+        }
+
+        stage("Op-5274368T-S4: Prod Server Ready") {
             steps {
                 echo "ST4-5274368T: Server1 is ready for deployment"
             }
         }
 
-        stage("Op-5274368T-S5") {
+        stage("Op-5274368T-S5: Deployment Success") {
             steps {
                 echo "ST5-5274368T: Deployment is successful"
             }
         }
 
-        stage("Op-5274368T-S6") {
+        stage("Op-5274368T-S6: Post-Deployment Checks") {
             steps {
                 echo "ST6-5274368T: Post-deployment checks are successful"
             }
         }
 
-        stage("Op-5274368T-S7") {
+        stage("Op-5274368T-S7: Cleanup") {
             steps {
                 echo "ST7-5274368T: Cleanup completed"
             }
