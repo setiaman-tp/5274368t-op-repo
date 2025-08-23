@@ -38,7 +38,7 @@ pipeline {
 
         stage("Op-5274368T-S2: QA Server Health Check") {
             steps {
-                echo "Op-S1-5274368t-S2: Checking on whether QA server is running after update"
+                echo "Op-5274368t-S2: Checking on whether QA server is running after update"
                 script {
 
                     // Run curl and save first response line to file
@@ -47,10 +47,10 @@ pipeline {
                     // Read and validate response
                     def result = readFile('/tmp/qa-result-file').trim()
                     if (result == 'HTTP/1.1 200 OK') {
-                        echo "QA server is healthy: ${result}"
+                        echo "Op-5274368t-S2: QA server is healthy: ${result}"
                     } else {
-                        echo "Op-S1-5274368t-S2: QA server health check failed: ${result}"
-                        error("Aborting: QA server is not healthy")
+                        echo "Op-5274368t-S2: QA server health check failed: ${result}"
+                        error("Op-5274368t-S2: Aborting, QA server is not healthy")
                     }
                 }
             }
