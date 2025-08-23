@@ -78,6 +78,7 @@ pipeline {
                 }
             }
         }
+
         stage("Op-5274368T-S4") {
             steps {
                 echo "Op-5274368T-S4: Backu Production container"
@@ -131,10 +132,26 @@ pipeline {
             }
         }
 
-
         stage("Op-5274368T-S6") {
             steps {
-                echo "ST6-5274368T: Post-deployment checks are successful"
+                script {
+                    def userChoice = input(
+                        id: 'ProdApproval',
+                        message: 'Choose deployment action:',
+                        parameters: [
+                            choice(name: 'Decision', choices: ['Proceed to release Prod web server to production', 'Rollback PROD web Server'], description: 'Select your action')
+                        ]
+                    )
+
+                    if (userChoice == 'Proceed to release Prod web server to production') {
+                        echo "Op-5274368T-S6: Proceed to release Prod web server to production"
+                    } else {
+                        echo "Op-5274368T-S6: Prod web server is rolled back"
+                        sh "docker rm -f 5274368t-prod-svr || true"
+                        sh "docker run -d --name 5274368t-prod-svr prod-bkup-image"
+                        error("Aborting")
+                    }
+                }
             }
         }
 
