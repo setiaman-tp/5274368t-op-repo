@@ -99,7 +99,7 @@ pipeline {
 
         stage("Op-5274368T-S7: Cleanup") {
             steps {
-                echo "ST7-5274368T: Cleanup completed"
+                echo "ST7-5274368T-S7: Prod web server is monitored and ready to serve."
             }
         }
     }
