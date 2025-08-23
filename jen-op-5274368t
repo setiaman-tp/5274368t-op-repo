@@ -15,6 +15,14 @@ pipeline {
                 }
                 echo “Op-S1-5274368T: QA web server is backup and updated”
             }
+          steps {
+                 sh '''#!/bin/bash
+                 targets=5274368t-qa-svr;
+                 locate_script='/operate/5274368t/5274368t-script';
+                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
+                 '''
+                 echo "Web Server container updated"
+          }
         }
         stage("Op-5274368T-S3") {
             steps {
