@@ -63,11 +63,11 @@ pipeline {
                         id: 'ProdApproval',
                         message: 'Choose deployment action:',
                         parameters: [
-                            choice(name: 'Decision', choices: ['Proceed to Prod', 'Rollback QA'], description: 'Select your action')
+                            choice(name: 'Decision', choices: ['Proceed to Roll out to Prod server', 'Rollback QA Server'], description: 'Select your action')
                         ]
                     )
 
-                    if (userChoice == 'Proceed to Prod') {
+                    if (userChoice == 'Proceed to Roll out to Prod server') {
                         echo "Op-5274368T-S3: Proceed to roll out to Prod server"
                     } else {
                         echo "Op-5274368T-S3: QA server fails after update and is rolled back"
